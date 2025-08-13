@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neptune Ops - Influencer Intelligence Platform</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useCallback, useMemo } = React;
+        const { 
+            Search, Users, DollarSign, FileText, Calendar, ExternalLink, 
+            Filter, Network, TrendingUp, Target, Plus, Check, X, UserPlus, 
+            Download, Save, LogIn, User, Briefcase, BarChart 
+        } = LucideReact;
+
+        // Constants
+        const INFLUENCE_TYPES = {
+            all: { icon: Network, label: 'All Influencers', color: 'bg-gray-100' },
+            key_staff: { icon: Users, label: 'Key Staff', color: 'bg-blue-100' },
+            key_donors: { icon: DollarSign, label: 'Key Donors', color: 'bg-green-100' },
+            key_colleagues: { icon: FileText, label: 'Key Colleagues', color: 'bg-purple-100' },
+            friends: { icon: Users, label: 'Friends', color: 'bg-orange-100' },
+            family: { icon: Users, label: 'Family', color: 'bg-rose-200' },
+            political_influencers: { icon: TrendingUp, label: 'Political Influencers', color: 'bg-indigo-100' },
+            media_network: { icon: Calendar, label: 'Media Network', color: 'bg-blue-200' },
+            policy_network: { icon: FileText, label: 'Policy Network', color: 'bg-purple-200' },
+            financial_network: { icon: DollarSign, label: 'Financial Network', color: 'bg-green-200' },
+            personal_network: { icon: Users, label: 'Personal Network', color: 'bg-yellow-100' },
+            digital_influencers: { icon: TrendingUp, label: 'Digital Influencers', color: 'bg-pink-100' },
+            geographic_network: { icon: Target, label: 'Geographic Network', color: 'bg-indigo-200' },
+            interest_groups: { icon: Users, label: 'Interest Group Leaders', color: 'bg-red-100' },
+            legal_network: { icon: FileText, label: 'Legal Network', color: 'bg-slate-200' },
+            religious_network: { icon: Users, label: 'Religious/Spiritual Network', color: 'bg-yellow-200' },
+            academic_network: { icon: FileText, label: 'Academic Network', color: 'bg-blue-200' },
+            healthcare_network: { icon: Users, label: 'Healthcare Network', color: 'bg-green-200' },
+            lobbyist_network: { icon: FileText, label: 'Lobbyist Network', color: 'bg-stone-200' }
+        };
+
+        // Data
+        const POLITICIANS_DATA = {
+            'Ted Cruz': {
+                name: 'Ted Cruz',
+                party: 'Republican',
+                position: 'U.S. Senator (TX) & Commerce Committee Chair',
+                influences: [
+                    {
+                        type: 'key_staff',
+                        name: 'Aaron Reitz',
+                        role: 'Chief of Staff',
+                        influence: 'Daily Operations & Strategy',
+                        relationship: 'Senior Staff',
+                        relationshipHistory: 'Former Texas Deputy Attorney General appointed as Cruz\'s new chief of staff in 2024, replacing Steve Chartan.',
+                        timeframe: '2024-Present',
+                        source: 'Senate Press Release May 2025'
+                    },
+                    {
+                        type: 'key_staff',
+                        name: 'Steve Chartan',
+                        role: 'Former Chief of Staff',
+                        influence: 'Political Advisory',
+                        relationship: 'Senior Advisor',
+                        relationshipHistory: 'Served as chief of staff for four years before departing for private sector. Continues as advisor to Cruz political operation.',
+                        timeframe: '2020-2024',
+                        source: 'Senate Records'
+                    },
+                    {
+                        type: 'key_staff',
+                        name: 'Omri Ceren',
+                        role: 'Senior Advisor for Policy and Communications',
+                        influence: 'Policy Strategy & Communications',
+                        relationship: 'Senior Staff',
+                        relationshipHistory: 'Promoted from National Security Advisor and Legislative Director. Previously with The Israel Project.',
+                        timeframe: '2025-Present',
+                        source: 'Senate Press Release May 2025'
+                    },
+                    {
+                        type: 'key_staff',
+                        name: 'Preston Howey',
+                        role: 'Legislative Director',
+                        influence: 'Legislative Strategy',
+                        relationship: 'Senior Staff',
+                        relationshipHistory: 'Promoted from Domestic Policy Advisor. Previously worked with Rep. Kevin Brady and Rep. August Pfluger.',
+                        timeframe: '2025-Present',
+                        source: 'Senate Press Release May 2025'
+                    },
+                    {
+                        type: 'key_staff',
+                        name: 'Mike Berry',
+                        role: 'Chief Counsel',
+                        influence: 'Legal Strategy',
+                        relationship: 'Senior Staff',
+                        relationshipHistory: '7 years active duty U.S. Marine, deployed to Afghanistan. Previously with First Liberty Institute and America First Policy Institute.',
+                        timeframe: '2025-Present',
+                        source: 'Senate Press Release May 2025'
+                    },
+                    {
+                        type: 'key_donors',
+                        name: 'Veritas Energy',
+                        role: 'Energy Company',
+                        influence: 'Energy Policy & Campaign Funding',
+                        relationship: 'Top 2024 Donor',
+                        relationshipHistory: 'Emerged as Cruz\'s top donor in 2024 election cycle, contributing $219,200 through various PACs and employees.',
+                        timeframe: '2024-Present',
+                        source: 'FEC Records via OpenSecrets'
+                    },
+                    {
+                        type: 'key_donors',
+                        name: 'Robert Mercer',
+                        role: 'Hedge Fund Manager',
+                        influence: 'Campaign Funding',
+                        relationship: 'Major Donor',
+                        relationshipHistory: 'Key Cruz backer during 2016 presidential run.',
+                        timeframe: '2016-Present',
+                        source: 'FEC Records'
+                    },
+                    {
+                        type: 'key_colleagues',
+                        name: 'Josh Hawley',
+                        role: 'U.S. Senator (MO)',
+                        influence: 'Conservative Strategy',
+                        relationship: 'Political Ally',
+                        relationshipHistory: 'Close allies since Hawley\'s 2018 Senate election.',
+                        timeframe: '2019-Present',
+                        source: 'Senate Records'
+                    },
+                    {
+                        type: 'family',
+                        name: 'Heidi Cruz',
+                        role: 'Investment Manager',
+                        influence: 'Personal Decisions',
+                        relationship: 'Spouse',
+                        relationshipHistory: 'Met on Bush 2000 campaign, married 2001.',
+                        timeframe: '2001-Present',
+                        source: 'Public Records'
+                    },
+                    {
+                        type: 'friends',
+                        name: 'David Panton',
+                        role: 'Investment Partner',
+                        influence: 'Business Perspective',
+                        relationship: 'College Friend',
+                        relationshipHistory: 'Princeton roommate and Harvard Law classmate.',
+                        timeframe: '1988-Present',
+                        source: 'Media Reports'
+                    },
+                    {
+                        type: 'political_influencers',
+                        name: 'Tucker Carlson',
+                        role: 'Media Personality',
+                        influence: 'Conservative Messaging',
+                        relationship: 'Media Ally',
+                        relationshipHistory: 'Developed relationship during presidential campaign.',
+                        timeframe: '2016-Present',
+                        source: 'Media Appearances'
+                    },
+                    {
+                        type: 'media_network',
+                        name: 'Sean Hannity',
+                        role: 'TV Host',
+                        influence: 'Conservative Media',
+                        relationship: 'Frequent Guest',
+                        relationshipHistory: 'Regular on show during campaigns and Senate tenure.',
+                        timeframe: '2013-Present',
+                        source: 'Media Appearances'
+                    }
+                ]
+            },
+            'Alexandria Ocasio-Cortez': {
+                name: 'Alexandria Ocasio-Cortez',
+                party: 'Democratic',
+                position: 'U.S. Representative (NY-14)',
+                influences: [
+                    {
+                        type: 'key_staff',
+                        name: 'Mike Casca',
+                        role: 'Chief of Staff',
+                        influence: 'Daily Operations & Strategy',
+                        relationship: 'Senior Staff',
+                        relationshipHistory: 'Former Bernie Sanders deputy chief of staff, joined AOC in December 2024. Previously Sanders\' communications director and 2020 campaign veteran.',
+                        timeframe: '2024-Present',
+                        source: 'Punchbowl News December 2024'
+                    },
+                    {
+                        type: 'digital_influencers',
+                        name: 'AOC Social Media Platform',
+                        role: 'Personal Digital Influence',
+                        influence: 'Progressive Digital Messaging',
+                        relationship: 'Personal Platform',
+                        relationshipHistory: 'Most followed politician on Bluesky (2M), 13.1M X followers, 8.4M Instagram. Teaches social media to congressional colleagues.',
+                        timeframe: '2018-Present',
+                        source: 'Platform Analytics 2025'
+                    },
+                    {
+                        type: 'key_colleagues',
+                        name: 'Cori Bush',
+                        role: 'Former U.S. Representative (MO)',
+                        influence: 'Progressive Coalition',
+                        relationship: 'Squad Member',
+                        relationshipHistory: 'Later Squad addition who worked closely with AOC on progressive initiatives before losing 2024 primary.',
+                        timeframe: '2021-2025',
+                        source: 'Congressional Records'
+                    },
+                    {
+                        type: 'financial_network',
+                        name: 'Small Dollar Fundraising Network',
+                        role: 'Grassroots Donor Base',
+                        influence: 'Campaign Funding',
+                        relationship: 'Primary Funding Source',
+                        relationshipHistory: 'Raised over $37 million since 2019 through small-dollar donations, plus $11.1 million for other progressive candidates.',
+                        timeframe: '2018-Present',
+                        source: 'FEC Data & Campaign Finance Reports'
+                    },
+                    {
+                        type: 'interest_groups',
+                        name: 'Democratic Socialists of America - NYC',
+                        role: 'Political Organization',
+                        influence: 'Progressive Base Mobilization',
+                        relationship: 'Endorsed Candidate',
+                        relationshipHistory: 'National DSA withdrew 2024 endorsement, but NYC chapter maintained support. AOC remains DSA member.',
+                        timeframe: '2018-Present',
+                        source: 'DSA Records & News Reports'
+                    }
+                ]
+            }
+        };
+
+        // Helper Components
+        const Modal = ({ isOpen, onClose, children, title }) => {
+            if (!isOpen) return null;
+            
+            return (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-xl font-semibold">{title}</h3>
+                            <button
+                                onClick={onClose}
+                                className="text-slate-400 hover:text-slate-600"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        {children}
+                    </div>
+                </div>
+            );
+        };
+
+        const Button = ({ onClick, disabled, variant = 'primary', size = 'medium', children, className = '' }) => {
+            const baseClasses = 'font-medium transition-colors flex items-center gap-2';
+            const sizeClasses = {
+                small: 'px-3 py-2 text-sm',
+                medium: 'px-4 py-2',
+                large: 'px-6 py-3'
+            };
+            const variantClasses = {
+                primary: 'bg-blue-600 hover:bg-blue-700 text-white disabled:bg-slate-400',
+                secondary: 'bg-slate-100 hover:bg-slate-200 text-slate-700',
+                success: 'bg-emerald-600 hover:bg-emerald-700 text-white',
+                danger: 'bg-red-100 hover:bg-red-200 text-red-700',
+                purple: 'bg-purple-600 hover:bg-purple-700 text-white'
+            };
+            
+            return (
+                <button
+                    onClick={onClick}
+                    disabled={disabled}
+                    className={`${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} rounded-lg ${className}`}
+                >
+                    {children}
+                </button>
+            );
+        };
+
+        // Main App Component
+        const NeptuneInfluencerApp = () => {
+            // State Management
+            const [appState, setAppState] = useState({
+                searchTerm: '',
+                selectedPolitician: null,
+                activeFilter: 'all',
+                loading: false,
+                influencerLimit: 15,
+                targetingAudience: [],
+                rejectedInfluencers: [],
+                isLoggedIn: false,
+                userRole: 'client',
+                userName: '',
+                currentProject: null,
+                savedProjects: [],
+                searchSuggestions: [],
+                showSuggestions: false,
+                sortBy: 'score-high',
+                minScore: 0
+            });
+
+            const [uiState, setUiState] = useState({
+                showAddInfluencer: false,
+                showSaveProject: false,
+                showLoginModal: false,
+                showAnalytics: false,
+                showProjectManager: false
+            });
+
+            const [forms, setForms] = useState({
+                login: { email: '', password: '' },
+                project: { name: '', description: '', clientName: '', campaignType: 'targeting' },
+                newInfluencer: {
+                    name: '',
+                    role: '',
+                    type: 'key_staff',
+                    influence: '',
+                    relationship: '',
+                    relationshipHistory: '',
+                    timeframe: '',
+                    source: 'Manual Addition'
+                }
+            });
+
+            // Helper Functions
+            const updateAppState = useCallback((updates) => {
+                setAppState(prev => ({ ...prev, ...updates }));
+            }, []);
+
+            const updateUIState = useCallback((updates) => {
+                setUiState(prev => ({ ...prev, ...updates }));
+            }, []);
+
+            const updateForm = useCallback((formName, updates) => {
+                setForms(prev => ({
+                    ...prev,
+                    [formName]: { ...prev[formName], ...updates }
+                }));
+            }, []);
+
+            const getTypeIcon = useCallback((type) => {
+                const IconComponent = INFLUENCE_TYPES[type]?.icon || Network;
+                return React.createElement(IconComponent, { className: "w-4 h-4" });
+            }, []);
+
+            // Business Logic Functions
+            const calculateInfluenceScore = useCallback((influencer) => {
+                let score = 0;
+                
+                // Base score by relationship type (40 points max)
+                const typeScores = {
+                    key_staff: 40,
+                    key_donors: 35,
+                    key_colleagues: 30,
+                    family: 38,
+                    friends: 25,
+                    political_influencers: 28,
+                    media_network: 26,
+                    policy_network: 32,
+                    financial_network: 30,
+                    personal_network: 24,
+                    digital_influencers: 22,
+                    geographic_network: 20,
+                    interest_groups: 25,
+                    legal_network: 28,
+                    religious_network: 24,
+                    academic_network: 22,
+                    healthcare_network: 20,
+                    lobbyist_network: 30
+                };
+                score += typeScores[influencer.type] || 15;
+                
+                // Relationship duration score (20 points max)
+                const timeframe = influencer.timeframe || '';
+                if (timeframe.includes('Present')) score += 10;
+                if (timeframe.includes('2025') || timeframe.includes('2024')) score += 10;
+                else if (timeframe.includes('2023') || timeframe.includes('2022')) score += 8;
+                else if (timeframe.includes('2020') || timeframe.includes('2021')) score += 6;
+                else if (timeframe.includes('201')) score += 4;
+                else if (timeframe.includes('Lifetime')) score += 15;
+                
+                // Relationship strength (20 points max)
+                const relationship = influencer.relationship?.toLowerCase() || '';
+                if (relationship.includes('chief') || relationship.includes('senior')) score += 20;
+                else if (relationship.includes('spouse') || relationship.includes('father') || relationship.includes('daughter')) score += 18;
+                else if (relationship.includes('advisor') || relationship.includes('director')) score += 15;
+                else if (relationship.includes('major donor') || relationship.includes('top')) score += 15;
+                else if (relationship.includes('ally') || relationship.includes('partner')) score += 12;
+                else if (relationship.includes('friend') || relationship.includes('mentor')) score += 10;
+                else score += 5;
+                
+                // Influence area importance (10 points max)
+                const influence = influencer.influence?.toLowerCase() || '';
+                if (influence.includes('daily') || influence.includes('operations') || influence.includes('strategy')) score += 10;
+                else if (influence.includes('policy') || influence.includes('campaign')) score += 8;
+                else if (influence.includes('media') || influence.includes('communications')) score += 7;
+                else if (influence.includes('funding') || influence.includes('financial')) score += 8;
+                else score += 3;
+                
+                // Recent activity bonus (10 points max)
+                const history = influencer.relationshipHistory?.toLowerCase() || '';
+                if (history.includes('2025') || history.includes('2024')) score += 10;
+                else if (history.includes('2023') || history.includes('2022')) score += 7;
+                else if (history.includes('2020') || history.includes('2021')) score += 5;
+                else score += 2;
+                
+                // Ensure score is between 0-100
+                return Math.min(100, Math.max(0, Math.round(score)));
+            }, []);
+
+            const getInfluenceTemperature = useCallback((score) => {
+                if (score >= 80) return { icon: '🔥', label: 'Hot', color: 'text-red-600 bg-red-50' };
+                if (score >= 60) return { icon: '🌡️', label: 'Warm', color: 'text-orange-600 bg-orange-50' };
+                if (score >= 40) return { icon: '☀️', label: 'Active', color: 'text-yellow-600 bg-yellow-50' };
+                return { icon: '❄️', label: 'Cool', color: 'text-blue-600 bg-blue-50' };
+            }, []);
+
+            const handleSearch = useCallback(() => {
+                const searchTerm = appState.searchTerm;
+                if (!searchTerm || !searchTerm.trim()) return;
+                
+                updateAppState({ loading: true, targetingAudience: [], rejectedInfluencers: [] });
+                
+                setTimeout(() => {
+                    // Search logic
+                    const searchLower = searchTerm.toLowerCase().trim();
+                    
+                    // Try to find politician
+                    let politician = null;
+                    
+                    // Check each politician
+                    for (const [key, pol] of Object.entries(POLITICIANS_DATA)) {
+                        if (key.toLowerCase() === searchLower || 
+                            pol.name.toLowerCase() === searchLower ||
+                            pol.name.toLowerCase().includes(searchLower) ||
+                            searchLower.includes(pol.name.toLowerCase().split(' ')[0]) ||
+                            searchLower.includes(pol.name.toLowerCase().split(' ')[1])) {
+                            politician = pol;
+                            break;
+                        }
+                    }
+                    
+                    updateAppState({ selectedPolitician: politician, loading: false });
+                }, 1000);
+            }, [appState.searchTerm, updateAppState]);
+
+            const handleLogin = useCallback((email, password) => {
+                const isStaff = email === 'staff@neptuneops.com';
+                updateAppState({
+                    isLoggedIn: true,
+                    userRole: isStaff ? 'neptune_staff' : 'client',
+                    userName: isStaff ? 'Neptune Staff' : email.split('@')[0]
+                });
+                updateUIState({ showLoginModal: false });
+                updateForm('login', { email: '', password: '' });
+            }, [updateAppState, updateUIState, updateForm]);
+
+            const handleLogout = useCallback(() => {
+                updateAppState({
+                    isLoggedIn: false,
+                    userRole: 'client',
+                    userName: '',
+                    currentProject: null
+                });
+            }, [updateAppState]);
+
+            const addToTargetingAudience = useCallback((influencer) => {
+                const { targetingAudience, rejectedInfluencers } = appState;
+                if (!targetingAudience.find(inf => inf.name === influencer.name)) {
+                    updateAppState({
+                        targetingAudience: [...targetingAudience, influencer],
+                        rejectedInfluencers: rejectedInfluencers.filter(inf => inf.name !== influencer.name)
+                    });
+                }
+            }, [appState, updateAppState]);
+
+            const removeFromTargetingAudience = useCallback((influencer) => {
+                const { targetingAudience } = appState;
+                updateAppState({
+                    targetingAudience: targetingAudience.filter(inf => inf.name !== influencer.name)
+                });
+            }, [appState, updateAppState]);
+
+            const rejectInfluencer = useCallback((influencer) => {
+                const { rejectedInfluencers, targetingAudience } = appState;
+                if (!rejectedInfluencers.find(inf => inf.name === influencer.name)) {
+                    updateAppState({
+                        rejectedInfluencers: [...rejectedInfluencers, influencer],
+                        targetingAudience: targetingAudience.filter(inf => inf.name !== influencer.name)
+                    });
+                }
+            }, [appState, updateAppState]);
+
+            const undoRejectInfluencer = useCallback((influencer) => {
+                const { rejectedInfluencers } = appState;
+                updateAppState({
+                    rejectedInfluencers: rejectedInfluencers.filter(inf => inf.name !== influencer.name)
+                });
+            }, [appState, updateAppState]);
+
+            const exportData = useCallback((format = 'json') => {
+                const { currentProject, selectedPolitician, targetingAudience, userName, userRole } = appState;
+                
+                const baseData = {
+                    project: currentProject?.name || 'Untitled Campaign',
+                    politician: selectedPolitician?.name,
+                    generatedAt: new Date().toISOString(),
+                    generatedBy: userName || 'Anonymous',
+                    userRole: userRole,
+                    targetingAudience: targetingAudience.map(inf => ({
+                        name: inf.name,
+                        role: inf.role,
+                        type: inf.type,
+                        influence: inf.influence,
+                        relationship: inf.relationship,
+                        relationshipHistory: inf.relationshipHistory,
+                        source: inf.source
+                    }))
+                };
+
+                try {
+                    let dataUri, fileName;
+                    
+                    if (format === 'csv') {
+                        const csvHeader = 'Name,Role,Type,Influence,Relationship,RelationshipHistory,Source\n';
+                        const csvContent = baseData.targetingAudience.map(inf => 
+                            `"${inf.name}","${inf.role}","${inf.type}","${inf.influence}","${inf.relationship}","${inf.relationshipHistory || ''}","${inf.source}"`
+                        ).join('\n');
+                        
+                        dataUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvHeader + csvContent);
+                        fileName = `${selectedPolitician?.name.replace(/\s+/g, '_')}_targeting_audience.csv`;
+                    } else {
+                        dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(JSON.stringify(baseData, null, 2));
+                        fileName = `${selectedPolitician?.name.replace(/\s+/g, '_')}_targeting_audience.json`;
+                    }
+                    
+                    const linkElement = document.createElement('a');
+                    linkElement.setAttribute('href', dataUri);
+                    linkElement.setAttribute('download', fileName);
+                    linkElement.click();
+                } catch (error) {
+                    console.error('Export failed:', error);
+                }
+            }, [appState]);
+
+            // Computed Values
+            const filteredInfluences = useMemo(() => {
+                const { selectedPolitician, activeFilter, influencerLimit, sortBy, minScore } = appState;
+                if (!selectedPolitician) return [];
+                
+                let influences = activeFilter === 'all' 
+                    ? selectedPolitician.influences 
+                    : selectedPolitician.influences.filter(inf => inf.type === activeFilter);
+                
+                // Apply minimum score filter
+                if (minScore > 0) {
+                    influences = influences.filter(inf => calculateInfluenceScore(inf) >= minScore);
+                }
+                
+                // Apply sorting
+                if (sortBy) {
+                    influences = [...influences].sort((a, b) => {
+                        switch (sortBy) {
+                            case 'score-high':
+                                return calculateInfluenceScore(b) - calculateInfluenceScore(a);
+                            case 'score-low':
+                                return calculateInfluenceScore(a) - calculateInfluenceScore(b);
+                            case 'name':
+                                return a.name.localeCompare(b.name);
+                            case 'type':
+                                return a.type.localeCompare(b.type);
+                            default:
+                                return 0;
+                        }
+                    });
+                }
+                
+                return influences.slice(0, influencerLimit);
+            }, [appState.selectedPolitician, appState.activeFilter, appState.influencerLimit, appState.sortBy, appState.minScore, calculateInfluenceScore]);
+
+            const getInfluencerStatus = useCallback((influencer) => {
+                const { targetingAudience, rejectedInfluencers } = appState;
+                if (targetingAudience.find(inf => inf.name === influencer.name)) return 'selected';
+                if (rejectedInfluencers.find(inf => inf.name === influencer.name)) return 'rejected';
+                return 'none';
+            }, [appState.targetingAudience, appState.rejectedInfluencers]);
+
+            // UI Components
+            const Header = () => (
+                <header className="bg-white shadow-sm border-b">
+                    <div className="max-w-7xl mx-auto px-4 py-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 via-cyan-400 to-blue-600 rounded-full flex items-center justify-center shadow-lg border-2 border-blue-300">
+                                        <div className="text-white text-2xl font-bold">🔱</div>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <div className="text-2xl font-bold text-slate-800">
+                                            <span className="text-blue-600">Neptune</span><span className="text-slate-700">Ops</span>
+                                        </div>
+                                        <div className="text-xs text-slate-500 font-medium tracking-wide">INFLUENCER INTELLIGENCE</div>
+                                    </div>
+                                </div>
+                                <div className="hidden lg:block text-sm text-slate-600 ml-6 border-l border-slate-200 pl-6">
+                                    Advanced Influencer Intelligence & Targeting Technology
+                                </div>
+                            </div>
+                            <div className="flex items-center space-x-4">
+                                {!appState.isLoggedIn ? (
+                                    <Button onClick={() => updateUIState({ showLoginModal: true })}>
+                                        <LogIn className="w-4 h-4" />
+                                        <span>Login</span>
+                                    </Button>
+                                ) : (
+                                    <div className="flex items-center space-x-4">
+                                        <div className="flex items-center space-x-2 bg-blue-50 px-3 py-2 rounded-lg">
+                                            <User className="w-4 h-4 text-blue-600" />
+                                            <span className="text-sm font-medium text-blue-800">{appState.userName}</span>
+                                            <span className="text-xs text-blue-600">
+                                                {appState.userRole === 'neptune_staff' ? 'Neptune Staff' : 'Client'}
+                                            </span>
+                                        </div>
+                                        <Button 
+                                            variant="secondary" 
+                                            size="small"
+                                            onClick={() => updateUIState({ showProjectManager: true })}
+                                        >
+                                            <Briefcase className="w-4 h-4" />
+                                            <span>Projects</span>
+                                        </Button>
+                                        <button
+                                            onClick={handleLogout}
+                                            className="text-slate-600 hover:text-red-600 text-sm transition-colors"
+                                        >
+                                            Logout
+                                        </button>
+                                    </div>
+                                )}
+                                
+                                <a 
+                                    href="https://www.neptuneops.com" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-slate-600 hover:text-blue-600 flex items-center space-x-1 transition-colors font-medium"
+                                >
+                                    <span className="hidden md:inline">neptuneops.com</span>
+                                    <ExternalLink className="w-4 h-4" />
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+            );
+
+            const SearchBar = () => {
+                // Handle search input changes with autocomplete
+                const handleSearchInput = useCallback((value) => {
+                    updateAppState({ searchTerm: value });
+                    
+                    if (value.trim().length > 0) {
+                        const searchLower = value.toLowerCase().trim();
+                        const suggestions = Object.values(POLITICIANS_DATA).filter(pol =>
+                            pol.name.toLowerCase().includes(searchLower)
+                        );
+                        updateAppState({ 
+                            searchSuggestions: suggestions,
+                            showSuggestions: suggestions.length > 0
+                        });
+                    } else {
+                        updateAppState({ 
+                            searchSuggestions: [],
+                            showSuggestions: false
+                        });
+                    }
+                }, [updateAppState]);
+
+                // Handle suggestion click
+                const handleSuggestionClick = useCallback((politician) => {
+                    updateAppState({ 
+                        searchTerm: politician.name,
+                        selectedPolitician: politician,
+                        showSuggestions: false,
+                        searchSuggestions: [],
+                        targetingAudience: [],
+                        rejectedInfluencers: []
+                    });
+                }, [updateAppState]);
+
+                // Handle clicking outside to close suggestions
+                const handleBlur = useCallback(() => {
+                    // Delay to allow suggestion clicks to register
+                    setTimeout(() => {
+                        updateAppState({ showSuggestions: false });
+                    }, 200);
+                }, [updateAppState]);
+
+                return (
+                    <div className="bg-white rounded-2xl shadow-xl p-6 mb-6 border">
+                        <div className="flex flex-col md:flex-row gap-4">
+                            <div className="flex-1 relative">
+                                <Search className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Enter politician name (try 'Alexandria Ocasio-Cortez' or 'Ted Cruz')"
+                                    value={appState.searchTerm}
+                                    onChange={(e) => handleSearchInput(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleSearch();
+                                        }
+                                    }}
+                                    onFocus={() => {
+                                        if (appState.searchSuggestions.length > 0) {
+                                            updateAppState({ showSuggestions: true });
+                                        }
+                                    }}
+                                    onBlur={handleBlur}
+                                    className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                                />
+                                
+                                {/* Autocomplete Dropdown */}
+                                {appState.showSuggestions && appState.searchSuggestions.length > 0 && (
+                                    <div className="absolute z-10 w-full mt-1 bg-white border border-slate-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                        {appState.searchSuggestions.map((politician) => (
+                                            <button
+                                                key={politician.name}
+                                                onClick={() => handleSuggestionClick(politician)}
+                                                className="w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors border-b border-slate-100 last:border-b-0"
+                                            >
+                                                <div className="font-medium text-slate-800">{politician.name}</div>
+                                                <div className="text-sm text-slate-500">{politician.position}</div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                            <Button
+                                onClick={handleSearch}
+                                disabled={appState.loading || !appState.searchTerm.trim()}
+                                size="large"
+                            >
+                                {appState.loading ? (
+                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                ) : (
+                                    <Target className="w-5 h-5" />
+                                )}
+                                Analyze Network
+                            </Button>
+                        </div>
+                    </div>
+                );
+            };
+
+            const InfluencerCard = ({ influencer }) => {
+                const status = getInfluencerStatus(influencer);
+                const influenceScore = calculateInfluenceScore(influencer);
+                const temperature = getInfluenceTemperature(influenceScore);
+                
+                return (
+                    <div className={`border rounded-xl p-5 transition-all ${
+                        status === 'selected' ? 'border-emerald-500 bg-emerald-50' :
+                        status === 'rejected' ? 'border-red-300 bg-red-50 opacity-60' :
+                        'border-slate-200 bg-slate-50 hover:shadow-md'
+                    }`}>
+                        <div className="flex items-start gap-4">
+                            <div className={`p-3 rounded-lg ${INFLUENCE_TYPES[influencer.type]?.color || 'bg-slate-100'}`}>
+                                {getTypeIcon(influencer.type)}
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-3">
+                                    <div className="flex items-center gap-3">
+                                        <h3 className="text-xl font-semibold text-slate-800">{influencer.name}</h3>
+                                        {/* Influence Score Badge */}
+                                        <div className="flex items-center gap-2">
+                                            <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-bold ${temperature.color}`}>
+                                                <span>{temperature.icon}</span>
+                                                <span>{influenceScore}</span>
+                                            </div>
+                                            <div className="relative group">
+                                                <div className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-xs cursor-help">?</div>
+                                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                                                    Influence Score: {temperature.label} ({influenceScore}/100)
+                                                    <div className="text-xs mt-1">Based on relationship, duration, and activity</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <span className="text-sm text-slate-500 bg-white px-3 py-1 rounded-full">
+                                            {influencer.timeframe}
+                                        </span>
+                                        {status === 'selected' && (
+                                            <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-medium">
+                                                In Targeting Audience
+                                            </span>
+                                        )}
+                                        {status === 'rejected' && (
+                                            <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">
+                                                Rejected
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                
+                                <div className="grid md:grid-cols-2 gap-3 text-sm mb-4">
+                                    <div>
+                                        <span className="font-medium text-slate-600">Role:</span>
+                                        <p className="text-slate-800">{influencer.role}</p>
+                                    </div>
+                                    <div>
+                                        <span className="font-medium text-slate-600">Influence Area:</span>
+                                        <p className="text-slate-800">{influencer.influence}</p>
+                                    </div>
+                                    <div>
+                                        <span className="font-medium text-slate-600">Relationship:</span>
+                                        <p className="text-slate-800">{influencer.relationship}</p>
+                                    </div>
+                                    <div>
+                                        <span className="font-medium text-slate-600">Source:</span>
+                                        <p className="text-slate-800 flex items-center gap-1">
+                                            {influencer.source}
+                                            <ExternalLink className="w-3 h-3" />
+                                        </p>
+                                    </div>
+                                    
+                                    {influencer.relationshipHistory && (
+                                        <div className="md:col-span-2 mt-3">
+                                            <span className="font-medium text-slate-700">Relationship History:</span>
+                                            <p className="text-slate-700 text-sm bg-blue-50 p-3 rounded-lg mt-2 border-l-4 border-blue-400">
+                                                {influencer.relationshipHistory}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex space-x-2">
+                                    {status === 'none' && (
+                                        <>
+                                            <Button
+                                                variant="success"
+                                                size="small"
+                                                onClick={() => addToTargetingAudience(influencer)}
+                                            >
+                                                <Check className="w-4 h-4" />
+                                                <span>Add to Audience</span>
+                                            </Button>
+                                            <Button
+                                                variant="danger"
+                                                size="small"
+                                                onClick={() => rejectInfluencer(influencer)}
+                                            >
+                                                <X className="w-4 h-4" />
+                                                <span>Reject</span>
+                                            </Button>
+                                        </>
+                                    )}
+                                    {status === 'selected' && (
+                                        <Button
+                                            variant="danger"
+                                            size="small"
+                                            onClick={() => removeFromTargetingAudience(influencer)}
+                                        >
+                                            <X className="w-4 h-4" />
+                                            <span>Remove from Audience</span>
+                                        </Button>
+                                    )}
+                                    {status === 'rejected' && (
+                                        <Button
+                                            variant="secondary"
+                                            size="small"
+                                            onClick={() => undoRejectInfluencer(influencer)}
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            <span>Undo Reject</span>
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+                    <Header />
+
+                    {/* Modals */}
+                    <Modal 
+                        isOpen={uiState.showLoginModal} 
+                        onClose={() => updateUIState({ showLoginModal: false })}
+                        title="Login to Neptune Ops"
+                    >
+                        <div className="space-y-4">
+                            <input
+                                type="email"
+                                placeholder="Email"
+                                value={forms.login.email}
+                                onChange={(e) => updateForm('login', { email: e.target.value })}
+                                className="w-full p-3 border rounded-lg"
+                            />
+                            <input
+                                type="password"
+                                placeholder="Password"
+                                value={forms.login.password}
+                                onChange={(e) => updateForm('login', { password: e.target.value })}
+                                className="w-full p-3 border rounded-lg"
+                            />
+                            <div className="flex space-x-3">
+                                <Button
+                                    onClick={() => handleLogin(forms.login.email, forms.login.password)}
+                                    className="flex-1"
+                                >
+                                    Login
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => updateUIState({ showLoginModal: false })}
+                                    className="flex-1"
+                                >
+                                    Cancel
+                                </Button>
+                            </div>
+                        </div>
+                    </Modal>
+
+                    {/* Main Content */}
+                    <div className="max-w-7xl mx-auto p-4">
+                        <div className="text-center mb-8 mt-8">
+                            <div className="inline-flex items-center space-x-3 bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 px-6 py-3 rounded-full text-sm font-medium mb-6 shadow-sm">
+                                <span className="font-semibold">Neptune Ops Influencer Intelligence Builder</span>
+                            </div>
+                            <p className="text-xl text-slate-600 max-w-3xl mx-auto mb-4">
+                                We use advanced AI to reach not just the decision-makers, but the people who influence the decision-makers.
+                            </p>
+                            <p className="text-slate-500">
+                                Discover and target the networks that determine political outcomes
+                            </p>
+                        </div>
+
+                        <SearchBar />
+
+                        {appState.selectedPolitician && (
+                            <>
+                                <div className="bg-white rounded-2xl shadow-xl p-4 mb-6 border">
+                                    <div className="flex flex-wrap items-center justify-between gap-4">
+                                        <div className="flex items-center space-x-4">
+                                            <div className="flex items-center space-x-2">
+                                                <Filter className="w-4 h-4 text-slate-600" />
+                                                <select
+                                                    value={appState.activeFilter}
+                                                    onChange={(e) => updateAppState({ activeFilter: e.target.value })}
+                                                    className="border border-slate-300 rounded-lg px-3 py-2 text-sm"
+                                                >
+                                                    {Object.entries(INFLUENCE_TYPES).map(([key, type]) => (
+                                                        <option key={key} value={key}>{type.label}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            <div className="flex items-center space-x-2">
+                                                <span className="text-sm text-slate-600">Show:</span>
+                                                <select
+                                                    value={appState.influencerLimit}
+                                                    onChange={(e) => updateAppState({ influencerLimit: Number(e.target.value) })}
+                                                    className="border border-slate-300 rounded-lg px-3 py-2 text-sm"
+                                                >
+                                                    <option value={10}>10</option>
+                                                    <option value={15}>15</option>
+                                                    <option value={25}>25</option>
+                                                    <option value={50}>50</option>
+                                                    <option value={100}>All</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center space-x-2">
+                                            {appState.targetingAudience.length > 0 && (
+                                                <>
+                                                    <Button
+                                                        variant="success"
+                                                        size="small"
+                                                        onClick={() => exportData('json')}
+                                                    >
+                                                        <Download className="w-4 h-4" />
+                                                        <span>Export JSON</span>
+                                                    </Button>
+                                                    <Button
+                                                        variant="success"
+                                                        size="small"
+                                                        onClick={() => exportData('csv')}
+                                                    >
+                                                        <Download className="w-4 h-4" />
+                                                        <span>Export CSV</span>
+                                                    </Button>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <div className="bg-white rounded-2xl shadow-xl overflow-hidden border">
+                                        <div className="bg-gradient-to-r from-blue-600 to-slate-700 text-white p-6">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h2 className="text-3xl font-bold mb-2">{appState.selectedPolitician.name}</h2>
+                                                    <div className="flex flex-wrap gap-4 text-blue-100">
+                                                        <span className="flex items-center gap-2">
+                                                            <Users className="w-4 h-4" />
+                                                            {appState.selectedPolitician.party}
+                                                        </span>
+                                                        <span className="flex items-center gap-2">
+                                                            <FileText className="w-4 h-4" />
+                                                            {appState.selectedPolitician.position}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex space-x-4">
+                                                    <div className="bg-white bg-opacity-20 rounded-lg p-3">
+                                                        <div className="text-sm text-blue-100">Total Influencers</div>
+                                                        <div className="text-2xl font-bold">{appState.selectedPolitician.influences.length}</div>
+                                                        <div className="text-xs text-blue-200">Showing: {Math.min(appState.influencerLimit, filteredInfluences.length)}</div>
+                                                    </div>
+                                                    <div className="bg-emerald-500 bg-opacity-20 rounded-lg p-3">
+                                                        <div className="text-sm text-blue-100">Targeting Audience</div>
+                                                        <div className="text-2xl font-bold">{appState.targetingAudience.length}</div>
+                                                        <div className="text-xs text-blue-200">Selected for Campaign</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-white rounded-2xl shadow-xl p-6 border">
+                                        <h3 className="text-xl font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                                            <Network className="w-5 h-5" />
+                                            Influencer Network Breakdown
+                                        </h3>
+                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 mt-6">
+                                            {Object.entries(INFLUENCE_TYPES).slice(1).map(([key, type]) => {
+                                                const count = appState.selectedPolitician.influences.filter(inf => inf.type === key).length;
+                                                const targetingCount = appState.targetingAudience.filter(inf => inf.type === key).length;
+                                                const IconComponent = type.icon;
+                                                
+                                                return (
+                                                    <button
+                                                        key={key}
+                                                        onClick={() => {
+                                                            updateAppState({ activeFilter: key });
+                                                        }}
+                                                        className={`p-4 rounded-xl border-2 transition-all text-left hover:shadow-md transform hover:scale-105 ${
+                                                            appState.activeFilter === key 
+                                                                ? 'border-blue-500 bg-blue-50 shadow-md scale-105' 
+                                                                : count > 0 
+                                                                    ? 'border-slate-200 hover:border-blue-300 hover:bg-slate-50' 
+                                                                    : 'border-slate-100 opacity-60'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-start justify-between mb-2">
+                                                            <div className={`p-2 rounded-lg ${type.color}`}>
+                                                                <IconComponent className="w-4 h-4 text-slate-700" />
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <div className="text-lg font-bold text-slate-800">{count}</div>
+                                                                {targetingCount > 0 && (
+                                                                    <div className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-medium">
+                                                                        {targetingCount} selected
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-sm font-medium text-slate-700 mb-1">{type.label}</div>
+                                                        <div className="text-xs text-slate-500">
+                                                            {count === 0 ? 'No influencers' : 
+                                                             count === 1 ? '1 influencer' : 
+                                                             `${count} influencers`}
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    <div id="influencer-list" className="bg-white rounded-2xl shadow-xl overflow-hidden border">
+                                        <div className="p-6">
+                                            <h4 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                                                {appState.activeFilter === 'all' ? (
+                                                    <>
+                                                        <Network className="w-5 h-5" />
+                                                        All Influencers
+                                                        <span className="text-sm font-normal text-slate-600">
+                                                            ({appState.selectedPolitician.influences.length} total)
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        {getTypeIcon(appState.activeFilter)}
+                                                        {INFLUENCE_TYPES[appState.activeFilter]?.label} 
+                                                        <span className="text-sm font-normal text-slate-600">
+                                                            ({filteredInfluences.length} influencers)
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </h4>
+                                            <div className="grid gap-4">
+                                                {filteredInfluences.map((influence, index) => (
+                                                    <InfluencerCard key={`${influence.name}-${index}`} influencer={influence} />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        {!appState.selectedPolitician && !appState.loading && (
+                            <div className="bg-white rounded-2xl shadow-xl p-8 text-center border">
+                                <Network className="w-16 h-16 mx-auto mb-4 text-blue-600" />
+                                <h3 className="text-2xl font-semibold text-slate-800 mb-3">Advanced Influencer Targeting</h3>
+                                <div className="text-center mt-8 text-slate-600">
+                                    <p className="text-sm mb-6">
+                                        Neptune Ops uses advanced AI to analyze millions of data points and map the personal networks behind key decision-makers. 
+                                        Our AI-powered analysis identifies key influencers across eighteen critical relationship categories.
+                                    </p>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 mt-6">
+                                        {Object.entries(INFLUENCE_TYPES).slice(1).map(([key, type]) => {
+                                            const IconComponent = type.icon;
+                                            return (
+                                                <div key={key} className={`p-3 rounded-lg ${type.color} border text-center`}>
+                                                    <IconComponent className="w-6 h-6 mx-auto mb-1 text-slate-700" />
+                                                    <p className="text-xs font-medium text-slate-800">{type.label}</p>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-slate-50 rounded-xl border">
+                                    <h4 className="text-lg font-semibold text-slate-800 mb-2">Ready to Deploy Advanced Influencer Targeting?</h4>
+                                    <a 
+                                        href="https://www.neptuneops.com" 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors mt-4"
+                                    >
+                                        <span>Contact Neptune Ops</span>
+                                        <ExternalLink className="w-4 h-4" />
+                                    </a>
+                                </div>
+                            </div>
+                        )}
+
+                        <footer className="mt-12 text-center text-slate-600 border-t pt-8">
+                            <div className="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-8">
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-cyan-300 rounded-full flex items-center justify-center shadow-sm">
+                                        <div className="text-white text-sm font-bold">🔱</div>
+                                    </div>
+                                    <div className="flex flex-col items-start">
+                                        <span className="font-bold text-slate-800">Neptune Ops</span>
+                                        <span className="text-xs text-slate-500">INFLUENCER INTELLIGENCE</span>
+                                    </div>
+                                </div>
+                                <a 
+                                    href="https://www.neptuneops.com" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:text-blue-700 flex items-center space-x-1 font-medium transition-colors"
+                                >
+                                    <span>neptuneops.com</span>
+                                    <ExternalLink className="w-3 h-3" />
+                                </a>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-6">
+                                Data sourced from public records, campaign finance databases, and verified news reports.
+                                <br />
+                                All targeting complies with applicable privacy and advertising regulations.
+                            </p>
+                        </footer>
+                    </div>
+                </div>
+            );
+        };
+
+        // Mount the component
+        ReactDOM.render(<NeptuneInfluencerApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
